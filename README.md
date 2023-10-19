@@ -8,16 +8,20 @@ evil-surround for a couple of years, I needed something similar when returning t
 keybindings.  There are a few similar packages, but none were quite as convenient as I wanted
 and some do not seem to be maintained.
 
-## Usage
+## Overview
 
-This provides four major features:
+### Operations
+
+There are five operations supported:
 
 - Surrounding the region or current symbol in pairs of characters like quotes or parentheses.
 
-- Marking text in pairs of characters.  The term "marking" is used to mean setting the point
-  and mark and activating the region.
+- Deleting surrounding pairs but leaving the text inside.  That is, undoing a surround.
 
-- Killing text in pairs of characters without having to mark it first.
+- Marking or selecting text within pairs of characters.  This can include the pairs or just be
+  the text within.
+
+- Killing text in pairs of characters without having to mark it first.  Like marking, this can
 
 - Changing one pair of characters for another, such as changing from double quotes to single
   quotes.
@@ -36,10 +40,8 @@ contains the following open and close pairs:
 
 If you enter a character that is not in the list, that character will be used for both the left
 and right.  So, using the surround command with `*` would surround the region with two
-asterisks.
-
-(This means the list really only needs to contain characters where the left and right are
-different, unless you want a shortcut, discussed later.)
+asterisks.  (This means the list really only needs to contain characters where the left and
+right are different, unless you want a shortcut, discussed later.)
 
 ### Inner, Outer, and, Auto
 
@@ -52,31 +54,31 @@ means the pairs are also included.
     ---------    <-- outer
 
 There are also functions defined as "auto" which work as "inner" most of the time, but work as
-"outer" if you enter a closing character.  For example, the kill command `k` normally kills
-text within pairs, but if you enter `)` it will kill the parentheses also.
+"outer" if you enter a closing character.  For example, killing using `k (` kills text within
+parentheses, but `k )` it will kill the parentheses also.
 
-This is very handy as it allows the same command to be used for both inner and outer.
-Unfortunately this can't be used for pairs where the left and right are the same, like quotes.
-For these characters, the auto functions will always work as "inner".
+This allows the same command to be used for both inner and outer, but Unfortunately can't be
+used for pairs where the left and right are the same, like quotes.  For these characters, the
+auto functions will always work as "inner".
 
 ### Key Bindings
 
-The mode does not bind any keys.  It provides some commands which can be bound to keys, but the
-recommended usage is to bind a single key to the provided keymap.  The rest of the
+This package does not bind any keys.  It provides some commands which can be bound to keys, but
+the recommended usage is to bind a single key to the provided keymap.  The rest of the
 documentation will assume you are using this keymap.
 
-I personally bind the keymap to "C-." so it is easy to access, and an example of this will be
-shown in the installation section.
+Below, I'll assume you've chosen to bind `M-'` to the surround keymap.  Another good choice is
+`C-c s`.
 
 #### The Standard Commands
 
 The keymap defines 7 standard keys for the different commands:
 
 - s - surround the region or current symbol
-- k - kill in pairs auto
-- K - kill in pairs outer
-- i - mark in pairs auto
-- o - mark in pairs outer
+- k - kill auto
+- K - kill outer
+- i - mark auto
+- o - mark outer
 - d - delete pair characters
 - c - change pair characters
 
@@ -85,23 +87,14 @@ The keymap defines 7 standard keys for the different commands:
 The keymap also binds each of the characters from `surround-pairs`, both left and right, to a
 mark command.  Left characters, including characters where left and right are the same (like
 quotes), will be bound to "mark auto".  Right characters will be bound to "mark outer".  So
-pressing `C-. (` will mark inside parentheses and `C-. )` will mark the parentheses also.
+pressing `M-' (` will mark inside parentheses and `M-' )` will mark the parentheses also.
 
-To provide shortcuts for quotes, they have been added to `surround-pairs` also, so `C-. "` will
+To provide shortcuts for quotes, they have been added to `surround-pairs` also, so `M-' "` will
 mark inside quotes.
 
 The keymap is generated from `surround-pairs`, so if you change the pairs list, you may need to
 restart Emacs for shortcuts to be available for your new characters.  (If you are more familiar
 with Emacs, you can use the provided function to rebuild the keymap instead.)
-
-## Installation
-
-The package is available on MELPA, so you can install it with `package-install`.  If you are
-using `use-package`, put this into your init.el.  This snippet binds "C-." - be sure to change
-that if you want a different key:
-
-    (use-package surround
-      :bind-keymap ("C-." . surround-keymap))
 
 ## Examples
 
@@ -111,20 +104,28 @@ with the text below with the cursor on the `H`:
     Hello
     ^
 
-To put quotes around the word, press `C-. s "`
+### Surrounding
+
+To put quotes around the word, use the "surround" command bound to 's'.  The command asks for
+the character to surround the text with, so enter a double quote: `M-' s "`.
 
     "Hello"
      ^
 
-To change the quotes to parentheses: `C-. c " (`
+To change the quotes to parentheses, use the "change" command bound to 'c'.  It will ask for
+the character to replace, so enter a quote.  It will then ask for the character replace the
+quotes with, so enter a parenthesis: `M-' c " (`
 
     (Hello)
      ^
-    
-There are a couple of options for marking the text within the parentheses:
 
-- `C-. i (` - Pass an opening parenthesis to the `i` command.
-- `C-. (` - Use the opening parenthesis shortcut.
+### Marking
+
+To mark (select) the text within the parentheses, you have a couple of options.  You can use
+the "inner" command bound to 'i' or the shortcut bound do '(':
+
+- `M-' i (` - Pass an opening parenthesis to the `i` command.
+- `M-' (` - Use the opening parenthesis shortcut.
 
 Both of these will mark within the parentheses, but not the parentheses themselves.
 
@@ -133,35 +134,46 @@ Both of these will mark within the parentheses, but not the parentheses themselv
 
 To mark the parentheses also, there are three options:
 
-- `C-. i )` - Pass a closing parenthesis to the `i` command, which is really auto, not inner.
-- `C-. o (` or `C-. o )` - Use the `o` command which is always outer, so you can pass either open
-  or close.
-- `C-. )` - Use the closing parenthesis shortcut.
+- `M-' o (` or `M-' o )` - Use the "outer" command bound to 'o'.  When it asks for the pair
+  character, you can enter either an opening or closing parenthesis.
+
+- `M-' i )` - The "inner" command will behave like "outer" if you pass it a closing parenthesis.
+
+- `M-' )` - Finally, the shortcut command bound to ')'.
 
 The cursor will be after the closing parenthesis:
 
     (Hello)
     -------^
 
-To delete the parentheses, deselect and move the cursor anywhere back into the parentheses,
-such as to the first `l`:
+Now let's delete the parentheses but leave the text "Hello".  First, get back into the
+parentheses and deselect.  Move the cursor to the first 'l':
 
     (Hello)
        ^
 
-Now press `C-. d (` or `C-. d )`.  Open vs closed doesn't matter with this command - there is
-no inner vs outer.
+Use the "delete" command bound to 'd'.  It will ask for the character to delete and you can
+either either an open or closing parenthesis: `M-' d (` or `M-' d )`.
 
     Hello
       ^
 
-Surround in curly braces using `C-. s {`
+Surround in curly braces using `M-' s {`
 
     {Hello}
       ^
 
-To kill the text between the braces, leaving the braces, you would use `C-. k {`.  To kill the
-braces and the text together, you'd use `C-. K {` or `C-. k }`  The `K` command is always outer.
+To kill the text between the braces, leaving the braces, you would use `M-' k {`.  To kill the
+braces and the text together, you'd use `M-' K {` or `M-' k }`  The `K` command is always outer.
 The `k` command is an auto command, so passing a closing character will be a kill outer
 command.
 
+## Installation
+
+The package is available on MELPA, so you can install it with `package-install`.  If you are
+using `use-package`, put this into your init.el.  This snippet binds "M-'" - be sure to change
+that if you want a different key:
+
+    (use-package surround
+      :ensure t
+      :bind-keymap ("M-'" . surround-keymap))
