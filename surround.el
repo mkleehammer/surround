@@ -1,15 +1,78 @@
-;; -*- lexical-binding: t -*-
-;;; surround.el --- Functions for inserting, deleting, and changing pairs like vim surround.
+;;; surround.el --- Easily add/delete/change parens, quotes, and more  -*- lexical-binding: t -*-
+
+
+;; Copyright (C) 2023 Michael Kleehammer
+;;
+;; Author: Michael Kleehammer <michael@kleehammer.com>
+;; Maintainer: Michael Kleehammer <michael@kleehammer.com>
+;; URL: https://github.com/mkleehammer/surround
+;; Version: 1.0.0
+;; Package-Requires: ((emacs "24.3"))
+;;
+;; This file is NOT part of GNU Emacs.
+;;
+;; MIT License
+;;
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+;;
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+;;
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
+
 
 ;;; Commentary:
 ;;
 ;; Provides functions for working with pairs like parentheses and quotes, including wrapping
 ;; text, deleting pairs, marking pairs or within them, and changing them.  This is similar to
 ;; vim's surround plugin.
+;;
+;; For a detailed introduction and example usage, see the readme file at
+;; https://github.com/mkleehammer/surround
+;;
+;; This package provides a keymap with functions for working with pairs of delimiters like (),
+;; {}, quotes, etc.  If you are using use-package, the easiest way to configure is like so:
+;;
+;;    (use-package surround
+;;     :ensure t
+;;     :bind-keymap ("M-'" . surround-keymap))
+;;
+;; This will bind M-', but obviously choose the key you prefer.  C-c s may be a good option.
+;; The keymap will have the following keys bound:
+;;
+;; - s :: Surrounds the region or current symbol with a pair
+;; - i :: Selects the text within a pair (inner select / mark)
+;; - o :: Selects the pair and text within (outer select / mark)
+;; - k :: Kills text within a pair (inner kill)
+;; - K :: Kills the pair and test within (outer kill)
+;; - d :: Deletes the pair, but leaves text within
+;; - c :: Change the pair for another (e.g. change [1] to {1})
+;;
+;; For convenience, the 'i' and 'k' commands perform an outer select or kill if given a closing
+;; pair character, such as ')'.  That is, "M-' i (" will perform an inner mark but
+;; "M-' i )" will perform an outer mark.  When the left and right pair characters are the same,
+;; such as when using quotes, the commands always perform the inner command.
+;;
+;; The keymap also has shortcut commands for marking some pairs, bound to just the pair
+;; characters themselves.  For example, "M-' (" will mark within parentheses.  These all work
+;; like the 'i' command, so they default to inner but will work as an outer select if a right /
+;; closing pair character is entered:
+;;
+;; Inner: ( { [ < ' ` "
+;; Outer: ) } ] >
 
 ;;; Code:
-
-;; As a convention, we deal with pairs as strings, not characters.
 
 (defvar surround-pairs
   ;; We only need pairs here where the left and right are different, though shortcuts are
@@ -109,7 +172,6 @@
   (interactive
    (list (char-to-string (read-char "character: "))))
   (let ((bounds (surround--get-pair-bounds char 'auto)))
-    ;;  (surround--op-mark bounds)))
     (kill-region (car bounds) (cdr bounds))))
 
 ;;;###autoload
@@ -166,7 +228,7 @@
 (defun surround--make-pair (char)
   "Return a cons cell of (left . right) defined by CHAR.
 
-If CHAR is either a left or right character in surround-pairs,
+If CHAR is either a left or right character in `surround-pairs',
 that pair is returned.  Otherwise a cons cell is returned made of
 \(CHAR . CHAR)."
   (or (assoc char surround-pairs)
@@ -177,10 +239,10 @@ that pair is returned.  Otherwise a cons cell is returned made of
 (defun surround--get-pair-bounds (char ends)
   "Return bounds of text surrounded by CHAR, including CHAR.
 
-The ENDS parameter can be 'outer to include the pairs, 'inner
-to include the region within the pairs, or 'auto
+The ENDS parameter can be \\='outer to include the pairs, \\='inner
+to include the region within the pairs, or \\='auto
 which defaults to include the pairs unless CHAR is a
-right character in surround-pairs."
+right character in `surround-pairs'."
   (let* ((pair (surround--make-pair char))
          (left (car pair))
          (right (cdr pair))
@@ -207,8 +269,9 @@ right character in surround-pairs."
   (cond ((string= left right)
          (cons (surround--find-char left -1) (surround--find-char left 1)))
         (t
-         (cons (surround--find-char-nestable left right -1) (surround--find-char-nestable right left 1)))
-         ))
+         (cons
+          (surround--find-char-nestable left right -1)
+          (surround--find-char-nestable right left 1)))))
 
 
 (defun surround--find-char (char dir)
@@ -226,7 +289,7 @@ DIR must be -1 to search backwards and 1 to search forward."
   "Return the position of the closest, unnested CHAR.
 
 OTHER is the opposite pair character for CHAR.  For example if
-CHAR is '(' then OTHER would be ')'.  DIR must be -1 to search
+CHAR is ( then OTHER would be ).  DIR must be -1 to search
 backwards and 1 to search forward."
   ;; This searches in a single direction (-1 or 1) for `char`.  When searching forward for the
   ;; end of a pair of parens, we'd want to find the `char` ")".  We need to skip nested pairs,
