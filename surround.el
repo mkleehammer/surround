@@ -34,22 +34,23 @@
 
 ;;; Commentary:
 ;;
-;; Provides functions for working with pairs like parentheses and quotes, including wrapping
-;; text, deleting pairs, marking pairs or within them, and changing them.  This is similar to
-;; vim's surround plugin.
+;; Provides functions for working with pairs like parentheses and quotes,
+;; including wrapping text, deleting pairs, marking pairs or within them, and
+;; changing them.  This is similar to vim's surround plugin.
 ;;
 ;; For a detailed introduction and example usage, see the readme file at
 ;; https://github.com/mkleehammer/surround
 ;;
-;; This package provides a keymap with functions for working with pairs of delimiters like (),
-;; {}, quotes, etc.  If you are using use-package, the easiest way to configure is like so:
+;; This package provides a keymap with functions for working with pairs of
+;; delimiters like (), {}, quotes, etc.  If you are using use-package, the
+;; easiest way to configure is like so:
 ;;
 ;;    (use-package surround
 ;;     :ensure t
 ;;     :bind-keymap ("M-'" . surround-keymap))
 ;;
-;; This will bind M-', but obviously choose the key you prefer.  C-c s may be a good option.
-;; The keymap will have the following keys bound:
+;; This will bind M-', but obviously choose the key you prefer.  C-c s may be a
+;; good option.  The keymap will have the following keys bound:
 ;;
 ;; - s :: Surrounds the region or current symbol with a pair
 ;; - i :: Selects the text within a pair (inner select / mark)
@@ -59,15 +60,17 @@
 ;; - d :: Deletes the pair, but leaves text within
 ;; - c :: Change the pair for another (e.g. change [1] to {1})
 ;;
-;; For convenience, the 'i' and 'k' commands perform an outer select or kill if given a closing
-;; pair character, such as ')'.  That is, "M-' i (" will perform an inner mark but
-;; "M-' i )" will perform an outer mark.  When the left and right pair characters are the same,
-;; such as when using quotes, the commands always perform the inner command.
+;; For convenience, the 'i' and 'k' commands perform an outer select or kill if
+;; given a closing pair character, such as ')'.  That is, "M-' i (" will perform
+;; an inner mark but "M-' i )" will perform an outer mark.  When the left and
+;; right pair characters are the same, such as when using quotes, the commands
+;; always perform the inner command.
 ;;
-;; The keymap also has shortcut commands for marking some pairs, bound to just the pair
-;; characters themselves.  For example, "M-' (" will mark within parentheses.  These all work
-;; like the 'i' command, so they default to inner but will work as an outer select if a right /
-;; closing pair character is entered:
+;; The keymap also has shortcut commands for marking some pairs, bound to just
+;; the pair characters themselves.  For example, "M-' (" will mark within
+;; parentheses.  These all work like the 'i' command, so they default to inner
+;; but will work as an outer select if a right / closing pair character is
+;; entered:
 ;;
 ;; Inner: ( { [ < ' ` "
 ;; Outer: ) } ] >
@@ -75,12 +78,12 @@
 ;;; Code:
 
 (defvar surround-pairs
-  ;; We only need pairs here where the left and right are different, though shortcuts are
-  ;; created for each entry which is why quotes are here.  The default behavior is to insert
-  ;; the same char at both ends.
+  ;; We only need pairs here where the left and right are different, though
+  ;; shortcuts are created for each entry which is why quotes are here.  The
+  ;; default behavior is to insert the same char at both ends.
   ;;
-  ;; The keymap is created from this, so if you modify this after loading the package, either
-  ;; recreate the keymap or restart Emacs.
+  ;; The keymap is created from this, so if you modify this after loading the
+  ;; package, either recreate the keymap or restart Emacs.
   '(("("  . ")")
     ("{"  . "}")
     ("["  . "]")
@@ -101,11 +104,12 @@
     (define-key map "d" 'surround-delete)
     (define-key map "c" 'surround-change)
 
-    ;; Should we use defalias to create functions with names like mark-{ ?  Seems kind of
-    ;; weird.  How does which-key get its names?
+    ;; Should we use defalias to create functions with names like mark-{ ?
+    ;; Seems kind of weird.  How does which-key get its names?
     ;;
-    ;; Note that we're using lexical-binding, enabled by the comment at the top of the file,
-    ;; which makes lambdas closures, so `left' and `right' are captured.
+    ;; Note that we're using lexical-binding, enabled by the comment at the top
+    ;; of the file, which makes lambdas closures, so `left' and `right' are
+    ;; captured.
 
     (dolist (pair surround-pairs)
       (let* ((left  (car pair))
@@ -257,14 +261,15 @@ right character in `surround-pairs'."
 (defun surround--pair-bounds (left right)
   "Return the bounds of the enclosing pair LEFT and RIGHT."
 
-  ;; If the left and right are not the same, like ( and ), then we need a complex search that
-  ;; handles nesting.  For example if point is on "c" below, we need to select the entire
-  ;; expression and not just the closest parens to "c".
+  ;; If the left and right are not the same, like ( and ), then we need a
+  ;; complex search that handles nesting.  For example if point is on "c" below,
+  ;; we need to select the entire expression and not just the closest parens to
+  ;; "c".
   ;;
   ;;     (a (b) c (d) e)
   ;;
-  ;; Otherwise the open and close are the same and we won't support nesting.  We'll use a
-  ;; simpler technique.
+  ;; Otherwise the open and close are the same and we won't support nesting.
+  ;; We'll use a simpler technique.
 
   (cond ((string= left right)
          (cons (surround--find-char left -1) (surround--find-char left 1)))
@@ -278,7 +283,8 @@ right character in `surround-pairs'."
   "Move point to CHAR in given direction.
 
 DIR must be -1 to search backwards and 1 to search forward."
-  ;; This is barely a wrapper around search-forward, but we do want our own user-error.
+  ;; This is barely a wrapper around search-forward, but we do want our own
+  ;; user-error.
   (save-excursion
   (if (search-forward char nil t dir)
       (point)
@@ -291,13 +297,14 @@ DIR must be -1 to search backwards and 1 to search forward."
 OTHER is the opposite pair character for CHAR.  For example if
 CHAR is ( then OTHER would be ).  DIR must be -1 to search
 backwards and 1 to search forward."
-  ;; This searches in a single direction (-1 or 1) for `char`.  When searching forward for the
-  ;; end of a pair of parens, we'd want to find the `char` ")".  We need to skip nested pairs,
-  ;; so we watch for "(" which we call `other'.
+  ;; This searches in a single direction (-1 or 1) for `char`.  When searching
+  ;; forward for the end of a pair of parens, we'd want to find the `char` ")".
+  ;; We need to skip nested pairs, so we watch for "(" which we call `other'.
   ;;
-  ;; The only good algorithm I know is to walk forward to the next of either character and
-  ;; count the nesting level.  Since we are expecting to be inside, we start at 1.  When we
-  ;; reach 0, we've found the end of the current level.
+  ;; The only good algorithm I know is to walk forward to the next of either
+  ;; character and count the nesting level.  Since we are expecting to be
+  ;; inside, we start at 1.  When we reach 0, we've found the end of the current
+  ;; level.
 
   (save-excursion
     (let ((level 1))                      ; level of nesting
@@ -329,8 +336,8 @@ backwards and 1 to search forward."
   "Return the absolute distance between the positions P1 to P2."
   ;; REVIEW: Aren't p1 and p2 positions which can't be negative?
   ;;
-  ;; Also, using most-positive-fixnum does simplify other calling code, but perhaps we can
-  ;; reformat the other code to not require this.
+  ;; Also, using most-positive-fixnum does simplify other calling code, but
+  ;; perhaps we can reformat the other code to not require this.
   (let* ((a1 (abs p1))
          (a2 (abs (or p2 most-positive-fixnum))))
     (- (max a1 a2) (min a1 a2))))
