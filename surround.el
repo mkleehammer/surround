@@ -270,13 +270,11 @@ right character in `surround-pairs'."
   ;;
   ;; Otherwise the open and close are the same and we won't support nesting.
   ;; We'll use a simpler technique.
-
-  (cond ((string= left right)
-         (cons (surround--find-char left -1) (surround--find-char left 1)))
-        (t
-         (cons
-          (surround--find-char-nestable left right -1)
-          (surround--find-char-nestable right left 1)))))
+  (if (string= left right)
+      (cons (surround--find-char left -1) (surround--find-char left 1))
+    (cons
+     (surround--find-char-nestable left right -1)
+     (surround--find-char-nestable right left 1))))
 
 
 (defun surround--find-char (char dir)
@@ -307,24 +305,40 @@ backwards and 1 to search forward."
   ;; level.
 
   (save-excursion
-    (let ((level 1))                      ; level of nesting
-      (while (> level 0)
-        (let* ((current (point))
-               (charpos (search-forward char nil t dir))
-               (otherpos (progn
-                           (goto-char current)
-                           (search-forward other nil t dir)))
-               (chardist (surround--distance current charpos))
-               (otherdist (surround--distance current otherpos))
-               (pos (if (< chardist otherdist) charpos otherpos))
-               (diff (if (< chardist otherdist) -1 1)))
+    (if (looking-at char)
+        ;; We're already on the character we're looking for.  If it is the
+        ;; opening paren (dir=-1), then this is the position we want.  If it is
+        ;; the closing paren (dir=1), then we want the *next* point since the
+        ;; selection is exclusive.
+        (when (= dir 1)
+          (forward-char 1))
 
-          (if (null charpos)
-              (user-error "Did not find %s" char))
+      ;; The algorithm below is going to assume we are *inside* a pair (level =
+      ;; 1), so if we're on an opening paren step in.  Otherwise the algorithm
+      ;; below will find the opening paren we're already on and count it as
+      ;; another open.
+      (if (and (looking-at other) (= dir 1))
+          (forward-char dir))
 
-          (setq level (+ level diff))
-          (goto-char pos)))
-      (point))))
+      (let ((level 1))                      ; level of nesting
+        (while (> level 0)
+          (let* ((current (point))
+                 (charpos (search-forward char nil t dir))
+                 (otherpos (progn
+                             (goto-char current)
+                             (search-forward other nil t dir)))
+                 (chardist (surround--distance current charpos))
+                 (otherdist (surround--distance current otherpos))
+                 (pos (if (< chardist otherdist) charpos otherpos))
+                 (diff (if (< chardist otherdist) -1 1)))
+
+            (if (null charpos)
+                (user-error "Did not find %s" char))
+
+            (setq level (+ level diff))
+            (goto-char pos)))))
+
+    (point)))
 
 
 (defun surround--shrink (bounds)
