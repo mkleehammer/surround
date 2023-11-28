@@ -6,7 +6,7 @@
 ;; Author: Michael Kleehammer <michael@kleehammer.com>
 ;; Maintainer: Michael Kleehammer <michael@kleehammer.com>
 ;; URL: https://github.com/mkleehammer/surround
-;; Version: 1.0.0
+;; Version: 1.0.1
 ;; Package-Requires: ((emacs "24.3"))
 ;;
 ;; This file is NOT part of GNU Emacs.
