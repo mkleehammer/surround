@@ -6,7 +6,7 @@
 ;; Author: Michael Kleehammer <michael@kleehammer.com>
 ;; Maintainer: Michael Kleehammer <michael@kleehammer.com>
 ;; URL: https://github.com/mkleehammer/surround
-;; Version: 1.0.1
+;; Version: 1.0.2
 ;; Package-Requires: ((emacs "24.3"))
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -305,7 +305,7 @@ backwards and 1 to search forward."
   ;; level.
 
   (save-excursion
-    (if (looking-at char)
+    (if (looking-at (regexp-quote char))
         ;; We're already on the character we're looking for.  If it is the
         ;; opening paren (dir=-1), then this is the position we want.  If it is
         ;; the closing paren (dir=1), then we want the *next* point since the
@@ -317,7 +317,7 @@ backwards and 1 to search forward."
       ;; 1), so if we're on an opening paren step in.  Otherwise the algorithm
       ;; below will find the opening paren we're already on and count it as
       ;; another open.
-      (if (and (looking-at other) (= dir 1))
+      (if (and (looking-at (regexp-quote other)) (= dir 1))
           (forward-char dir))
 
       (let ((level 1))                      ; level of nesting
