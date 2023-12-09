@@ -186,9 +186,7 @@
   (let* ((pair (surround--make-pair char))
          (left  (car pair))
          (right (cdr pair))
-         (bounds (if (use-region-p)
-                     (cons (region-beginning) (region-end))
-                 (bounds-of-thing-at-point 'symbol))))
+         (bounds (surround--infer-bounds t)))
     (save-excursion
       (goto-char (cdr bounds))
       (insert right)
@@ -340,6 +338,26 @@ backwards and 1 to search forward."
 
     (point)))
 
+(defun surround--infer-bounds (&optional strict)
+  "Infer the bounds.
+
+With an active region they are those of the region. If looking at
+a symbol they are those of the symbol. For empty lines the
+current point is considered both start and end.
+
+If STRICT is t, a user error is signaled when the bounds couldn't
+be inferred."
+  (cond
+   ((use-region-p)
+    (cons (region-beginning) (region-end)))
+   ((thing-at-point 'symbol)
+    (bounds-of-thing-at-point 'symbol))
+   ((save-excursion
+      (beginning-of-line)
+      (looking-at-p "[ \t]*$"))
+    (cons (point) (point)))
+   (strict
+    (user-error "No bounds can be inferred"))))
 
 (defun surround--shrink (bounds)
   "Shrink BOUNDS from outer to inner."
