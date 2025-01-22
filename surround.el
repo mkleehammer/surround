@@ -104,19 +104,24 @@
     (define-key map "d" 'surround-delete)
     (define-key map "c" 'surround-change)
 
-    ;; Should we use defalias to create functions with names like mark-{ ?
-    ;; Seems kind of weird.  How does which-key get its names?
-    ;;
     ;; Note that we're using lexical-binding, enabled by the comment at the top
     ;; of the file, which makes lambdas closures, so `left' and `right' are
     ;; captured.
 
     (dolist (pair surround-pairs)
       (let* ((left  (car pair))
-               (right (cdr pair)))
-          (define-key map left (lambda () (interactive) (surround-mark left)))
-          (unless (string= left right)
-            (define-key map right (lambda () (interactive) (surround-mark right))))))
+             (right (cdr pair)))
+        ;; define-key supports binding keys to a cons cell of (string .
+        ;; function). which-key will read the string out of the cons cell and
+        ;; display it instead of the default "function" which it uses for
+        ;; lambdas. See
+        ;; https://github.com/justbur/emacs-which-key?tab=readme-ov-file#keymap-based-replacement
+        ;; for details.
+        (define-key map left (cons (concat "mark-" left)
+                                   (lambda () (interactive) (surround-mark left))))
+        (unless (string= left right)
+          (define-key map right (cons (concat "mark-" right)
+                                      (lambda () (interactive) (surround-mark right)))))))
     map))
 
 
