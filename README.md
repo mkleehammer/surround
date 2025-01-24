@@ -22,6 +22,7 @@ There are five operations supported:
   the text within.
 
 - Killing text in pairs of characters without having to mark it first.  Like marking, this can
+  include the pairs or just be the text within.
 
 - Changing one pair of characters for another, such as changing from double quotes to single
   quotes.
@@ -49,8 +50,8 @@ Marking and killing come in two flavors, "inner" and "outer", which you may reco
 or evil.  Inner means text within the pairs, but *not* the surrounding pairs themselves.  Outer
 means the pairs are also included.
 
-    (testing)
      -------     <-- inner
+    (testing)
     ---------    <-- outer
 
 There are also functions defined as "auto" which work as "inner" most of the time, but work as
@@ -122,7 +123,7 @@ quotes with, so enter a parenthesis: `M-' c " (`
 ### Marking
 
 To mark (select) the text within the parentheses, you have a couple of options.  You can use
-the "inner" command bound to 'i' or the shortcut bound do '(':
+the "inner" command bound to 'i' or the shortcut bound to '(':
 
 - `M-' i (` - Pass an opening parenthesis to the `i` command.
 - `M-' (` - Use the opening parenthesis shortcut.

@@ -56,7 +56,7 @@
 ;; - i :: Selects the text within a pair (inner select / mark)
 ;; - o :: Selects the pair and text within (outer select / mark)
 ;; - k :: Kills text within a pair (inner kill)
-;; - K :: Kills the pair and test within (outer kill)
+;; - K :: Kills the pair and text within (outer kill)
 ;; - d :: Deletes the pair, but leaves text within
 ;; - c :: Change the pair for another (e.g. change [1] to {1})
 ;;
