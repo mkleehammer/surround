@@ -1,12 +1,12 @@
 # surround
 
-An Emacs package for inserting, changing, and, deleting surrounding pairs of quotes, braces,
+An Emacs package for inserting, changing, and deleting surrounding pairs of quotes, braces,
 etc.
 
 This provides some of the functionality of vim-surround and evil-surround.  After using
 evil-surround for a couple of years, I needed something similar when returning to native Emacs
 keybindings.  There are a few similar packages, but none were quite as convenient as I wanted
-and some do not seem to be maintained.
+and some are no longer maintained.
 
 ## Overview
 
@@ -31,7 +31,7 @@ There are five operations supported:
 
 The commands provided all accept a single pair character, either the left or right (aka open
 and close).  The mode has a list of left and right pairs, and if you enter either it will
-lookup the matching character.  For example, if you run the surround command and enter `(`, the
+look up the matching character.  For example, if you run the surround command and enter `(`, the
 region will be surrounded with `(` and `)`.
 
 These pairs are stored in the variable `surround-pairs` which you can change.  The default list
@@ -44,7 +44,7 @@ and right.  So, using the surround command with `*` would surround the region wi
 asterisks.  (This means the list really only needs to contain characters where the left and
 right are different, unless you want a shortcut, discussed later.)
 
-### Inner, Outer, and, Auto
+### Inner, Outer, and Auto
 
 Marking and killing come in two flavors, "inner" and "outer", which you may recognize from vi
 or evil.  Inner means text within the pairs, but *not* the surrounding pairs themselves.  Outer
@@ -58,7 +58,7 @@ There are also functions defined as "auto" which work as "inner" most of the tim
 "outer" if you enter a closing character.  For example, killing using `k (` kills text within
 parentheses, but `k )` it will kill the parentheses also.
 
-This allows the same command to be used for both inner and outer, but Unfortunately can't be
+This allows the same command to be used for both inner and outer, but unfortunately can't be
 used for pairs where the left and right are the same, like quotes.  For these characters, the
 auto functions will always work as "inner".
 
@@ -114,7 +114,7 @@ the character to surround the text with, so enter a double quote: `M-' s "`.
      ^
 
 To change the quotes to parentheses, use the "change" command bound to 'c'.  It will ask for
-the character to replace, so enter a quote.  It will then ask for the character replace the
+the character to replace, so enter a quote.  It will then ask for the character to replace the
 quotes with, so enter a parenthesis: `M-' c " (`
 
     (Hello)
@@ -154,7 +154,7 @@ parentheses and deselect.  Move the cursor to the first 'l':
        ^
 
 Use the "delete" command bound to 'd'.  It will ask for the character to delete and you can
-either either an open or closing parenthesis: `M-' d (` or `M-' d )`.
+enter either an open or closing parenthesis: `M-' d (` or `M-' d )`.
 
     Hello
       ^
@@ -165,8 +165,8 @@ Surround in curly braces using `M-' s {`
       ^
 
 To kill the text between the braces, leaving the braces, you would use `M-' k {`.  To kill the
-braces and the text together, you'd use `M-' K {` or `M-' k }`  The `K` command is always outer.
-The `k` command is an auto command, so passing a closing character will be a kill outer
+braces and the text together, you'd use `M-' K {` or `M-' k }`.  The `K` command is always outer.
+The `k` command is an auto command, so passing a closing character will result in a kill outer
 command.
 
 ## Installation

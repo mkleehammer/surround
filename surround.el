@@ -112,9 +112,9 @@
       (let* ((left  (car pair))
              (right (cdr pair)))
         ;; define-key supports binding keys to a cons cell of (string .
-        ;; function). which-key will read the string out of the cons cell and
+        ;; function).  which-key will read the string out of the cons cell and
         ;; display it instead of the default "function" which it uses for
-        ;; lambdas. See
+        ;; lambdas.  See
         ;; https://github.com/justbur/emacs-which-key?tab=readme-ov-file#keymap-based-replacement
         ;; for details.
         (define-key map left (cons (concat "mark-" left)
@@ -138,7 +138,7 @@
 
 ;;;###autoload
 (defun surround-mark-inner (char)
-  "Mark a pair including the pair characters defined by CHAR."
+  "Mark a pair excluding the pair characters defined by CHAR."
   (interactive
    (list (char-to-string (read-char "character: "))))
   (let ((bounds (surround--get-pair-bounds char 'inner)))
@@ -177,7 +177,7 @@
 
 ;;;###autoload
 (defun surround-kill (char)
-  "Kill text within in a pair.  If CHAR is a closing character, mark pair also."
+  "Kill text within a pair.  If CHAR is a closing character, kill pair also."
   (interactive
    (list (char-to-string (read-char "character: "))))
   (let ((bounds (surround--get-pair-bounds char 'auto)))
@@ -289,7 +289,7 @@ DIR must be -1 to search backwards and 1 to search forward."
   (save-excursion
   (if (search-forward char nil t dir)
       (point)
-    (user-error "Did not found pair of %s" char))))
+    (user-error "Did not find pair of %s" char))))
 
 
 (defun surround--find-char-nestable (char other dir)
@@ -346,8 +346,8 @@ backwards and 1 to search forward."
 (defun surround--infer-bounds (&optional strict)
   "Infer the bounds.
 
-With an active region they are those of the region. If looking at
-a symbol they are those of the symbol. For empty lines the
+With an active region they are those of the region.  If looking at
+a symbol they are those of the symbol.  For empty lines the
 current point is considered both start and end.
 
 If STRICT is t, a user error is signaled when the bounds couldn't
